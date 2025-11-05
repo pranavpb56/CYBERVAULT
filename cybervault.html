@@ -1,0 +1,2247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberVault 2090</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #050505;
+            --bg-darker: #0a0a0a;
+            --neon-yellow: #ffe600;
+            --electric-cyan: #00fff2;
+            --magenta: #ff00ff;
+            --error-red: #ff0033;
+            --success-green: #00ff66;
+            --terminal-blue: #00aaff;
+            --terminal-dark-blue: #001122;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: var(--bg-dark);
+            color: var(--neon-yellow);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1.2rem;
+            line-height: 1.4;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255, 230, 0, 0.03) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(0, 255, 242, 0.03) 0%, transparent 20%),
+                radial-gradient(circle at 50% 50%, rgba(255, 0, 255, 0.02) 0%, transparent 30%);
+        }
+        
+        /* Intro Animation */
+        .intro-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-darker);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            font-family: 'VT323', monospace;
+        }
+        
+        .intro-title {
+            font-size: 4rem;
+            color: var(--neon-yellow);
+            text-shadow: 0 0 20px var(--neon-yellow);
+            margin-bottom: 30px;
+            letter-spacing: 5px;
+            opacity: 0;
+            transform: translateY(50px);
+            animation: titleAppear 2s ease-out forwards;
+        }
+        
+        .intro-subtitle {
+            font-size: 1.5rem;
+            color: var(--electric-cyan);
+            opacity: 0;
+            transform: translateY(30px);
+            animation: subtitleAppear 2s ease-out 1s forwards;
+        }
+        
+        .loading-bar {
+            width: 300px;
+            height: 4px;
+            background: rgba(255, 230, 0, 0.2);
+            margin-top: 40px;
+            border-radius: 2px;
+            overflow: hidden;
+            opacity: 0;
+            animation: loadingBarAppear 1s ease-out 1.5s forwards;
+        }
+        
+        .loading-progress {
+            height: 100%;
+            background: var(--neon-yellow);
+            width: 0%;
+            animation: loadingProgress 3s ease-in-out 2s forwards;
+            box-shadow: 0 0 10px var(--neon-yellow);
+        }
+        
+        .matrix-intro {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.1;
+            z-index: -1;
+        }
+        
+        /* CRT Monitor Effect */
+        .crt-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background-size: 100% 4px;
+            z-index: 100;
+            pointer-events: none;
+            opacity: 0.7;
+        }
+        
+        .crt-flicker {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 230, 0, 0.02);
+            opacity: 0;
+            z-index: 101;
+            pointer-events: none;
+            animation: flicker 0.15s infinite;
+        }
+        
+        .vhs-noise {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" opacity="0.05"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" stitchTiles="stitch"/></filter><rect width="100" height="100" filter="url(%23noise)"/></svg>');
+            z-index: 99;
+            pointer-events: none;
+            animation: noise 0.2s infinite;
+        }
+        
+        /* Main Container */
+        .cybervault-container {
+            position: relative;
+            width: 95%;
+            max-width: 1200px;
+            height: 85vh;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-darker);
+            border: 2px solid var(--neon-yellow);
+            box-shadow: 
+                0 0 30px rgba(255, 230, 0, 0.5),
+                inset 0 0 30px rgba(255, 230, 0, 0.1);
+            overflow: hidden;
+            z-index: 10;
+            animation: containerGlow 4s ease-in-out infinite alternate;
+            display: none; /* Hidden until intro completes */
+        }
+        
+        /* Header */
+        .cybervault-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--neon-yellow);
+            background: rgba(10, 10, 10, 0.8);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 20;
+        }
+        
+        .cybervault-title {
+            font-family: 'VT323', monospace;
+            font-size: 3rem;
+            font-weight: normal;
+            color: var(--neon-yellow);
+            text-shadow: 0 0 10px var(--neon-yellow);
+            letter-spacing: 3px;
+            animation: titleGlitch 8s infinite;
+        }
+        
+        .cybervault-subtitle {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1rem;
+            color: var(--electric-cyan);
+            letter-spacing: 2px;
+        }
+        
+        /* Main Content Area */
+        .cybervault-content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+        
+        /* Sidebar */
+        .cybervault-sidebar {
+            width: 280px;
+            background: rgba(15, 15, 15, 0.8);
+            border-right: 1px solid var(--neon-yellow);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            font-family: 'VT323', monospace;
+            /* Ensure sidebar is above overlays and scrollable if needed */
+            position: relative;
+            z-index: 30;
+            overflow-y: auto;
+        }
+        
+        /* Upload Section - ALWAYS VISIBLE */
+        .upload-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(10, 10, 10, 0.6);
+            border: 1px solid var(--electric-cyan);
+            border-radius: 5px;
+            /* keep upload section above other elements */
+            position: relative;
+            z-index: 40;
+        }
+        
+        .folder-list {
+            list-style: none;
+            margin-top: 20px;
+        }
+        
+        .folder-item {
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            font-family: 'VT323', monospace;
+            color: var(--neon-yellow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .folder-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 230, 0, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .folder-item:hover::before {
+            left: 100%;
+        }
+        
+        .folder-item:hover {
+            border: 1px solid var(--neon-yellow);
+            background-color: rgba(255, 230, 0, 0.05);
+            transform: translateX(5px);
+        }
+        
+        .folder-item.active {
+            border: 1px solid var(--electric-cyan);
+            background-color: rgba(0, 255, 242, 0.05);
+            animation: pulse 2s infinite;
+        }
+        
+        .folder-icon {
+            margin-right: 10px;
+            font-size: 1.5rem;
+        }
+        
+        /* Upload Section - ALWAYS VISIBLE */
+        .upload-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(10, 10, 10, 0.6);
+            border: 1px solid var(--electric-cyan);
+            border-radius: 5px;
+        }
+        
+        .upload-title {
+            font-size: 1.3rem;
+            color: var(--electric-cyan);
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .upload-area {
+            padding: 20px;
+            border: 2px dashed var(--electric-cyan);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'VT323', monospace;
+            position: relative;
+            overflow: hidden;
+            background: rgba(0, 255, 242, 0.05);
+        }
+        
+        .upload-area::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border: 2px solid transparent;
+            background: linear-gradient(45deg, var(--electric-cyan), var(--magenta), var(--neon-yellow), var(--electric-cyan));
+            background-size: 400% 400%;
+            animation: borderFlow 3s linear infinite;
+            mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+        }
+        
+        .upload-area:hover {
+            background: rgba(0, 255, 242, 0.1);
+            transform: scale(1.02);
+        }
+        
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--electric-cyan);
+            margin-bottom: 10px;
+            animation: bounce 2s infinite;
+        }
+        
+        .upload-text {
+            font-size: 1.5rem;
+            color: var(--electric-cyan);
+        }
+        
+        .file-type-hint {
+            font-size: 1rem;
+            color: var(--neon-yellow);
+            margin-top: 10px;
+            opacity: 0.8;
+        }
+        
+        /* Terminal Area */
+        .cybervault-terminal {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            font-family: 'VT323', monospace;
+        }
+        
+        .terminal-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            background: rgba(5, 5, 5, 0.7);
+            border: 1px solid rgba(255, 230, 0, 0.3);
+            margin-bottom: 20px;
+            font-family: 'VT323', monospace;
+            font-size: 1.4rem;
+            color: var(--neon-yellow);
+            position: relative;
+        }
+        
+        .terminal-line {
+            margin-bottom: 8px;
+            white-space: pre-wrap;
+            font-family: 'VT323', monospace;
+            opacity: 0;
+            animation: typeIn 0.1s forwards;
+        }
+        
+        @keyframes typeIn {
+            to { opacity: 1; }
+        }
+        
+        .command-input-area {
+            display: flex;
+            align-items: center;
+            background: rgba(5, 5, 5, 0.9);
+            border: 1px solid var(--neon-yellow);
+            padding: 10px;
+            position: relative;
+        }
+        
+        .command-prompt {
+            color: var(--electric-cyan);
+            margin-right: 10px;
+            font-size: 1.4rem;
+            font-family: 'VT323', monospace;
+            animation: blink 1s infinite;
+        }
+        
+        .command-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--neon-yellow);
+            font-family: 'VT323', monospace;
+            font-size: 1.4rem;
+            outline: none;
+        }
+        
+        /* File Grid */
+        .file-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 15px;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .file-item {
+            background: rgba(10, 10, 10, 0.7);
+            border: 1px solid rgba(255, 230, 0, 0.3);
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 160px;
+            font-family: 'VT323', monospace;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .file-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(255, 230, 0, 0.1) 50%, transparent 70%);
+            transform: translateX(-100%);
+            transition: transform 0.6s;
+        }
+        
+        .file-item:hover::before {
+            transform: translateX(100%);
+        }
+        
+        .file-item:hover {
+            border: 1px solid var(--neon-yellow);
+            box-shadow: 0 0 20px var(--neon-yellow);
+            transform: translateY(-5px) scale(1.05);
+        }
+        
+        .file-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            color: var(--electric-cyan);
+            filter: drop-shadow(0 0 5px var(--electric-cyan));
+        }
+        
+        .file-name {
+            font-size: 1.2rem;
+            word-break: break-word;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            color: var(--neon-yellow);
+        }
+        
+        /* Buttons */
+        .cyber-button {
+            background: transparent;
+            border: 1px solid var(--neon-yellow);
+            color: var(--neon-yellow);
+            padding: 10px 20px;
+            font-family: 'VT323', monospace;
+            font-size: 1.4rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 5px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cyber-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 230, 0, 0.3), transparent);
+            transition: left 0.5s;
+        }
+        
+        .cyber-button:hover::before {
+            left: 100%;
+        }
+        
+        .cyber-button:hover {
+            background: rgba(255, 230, 0, 0.1);
+            box-shadow: 0 0 15px var(--neon-yellow);
+            transform: translateY(-2px);
+        }
+        
+        .cyber-button.primary {
+            border-color: var(--electric-cyan);
+            color: var(--electric-cyan);
+        }
+        
+        .cyber-button.primary:hover {
+            background: rgba(0, 255, 242, 0.1);
+            box-shadow: 0 0 15px var(--electric-cyan);
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            font-family: 'VT323', monospace;
+        }
+        
+        .modal-content {
+            background: var(--bg-darker);
+            border: 2px solid var(--neon-yellow);
+            box-shadow: 0 0 40px var(--neon-yellow);
+            width: 80%;
+            max-width: 800px;
+            max-height: 80%;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            animation: modalAppear 0.5s ease-out;
+        }
+        
+        .modal-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--neon-yellow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(10, 10, 10, 0.8);
+        }
+        
+        .modal-title {
+            font-family: 'VT323', monospace;
+            font-size: 2rem;
+            color: var(--neon-yellow);
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--neon-yellow);
+            font-size: 1.8rem;
+            cursor: pointer;
+            transition: color 0.3s;
+            font-family: 'VT323', monospace;
+        }
+        
+        .modal-close:hover {
+            color: var(--error-red);
+            transform: scale(1.2);
+        }
+        
+        .modal-body {
+            padding: 20px;
+            flex: 1;
+            overflow-y: auto;
+            font-family: 'VT323', monospace;
+            font-size: 1.4rem;
+            color: var(--neon-yellow);
+        }
+        
+        /* File Preview */
+        .file-preview {
+            text-align: center;
+        }
+        
+        .file-preview img {
+            max-width: 100%;
+            max-height: 400px;
+            border: 1px solid var(--neon-yellow);
+            box-shadow: 0 0 20px rgba(255, 230, 0, 0.5);
+        }
+        
+        .file-preview .text-content {
+            white-space: pre-wrap;
+            text-align: left;
+            font-family: 'VT323', monospace;
+            font-size: 1.4rem;
+            color: var(--neon-yellow);
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border: 1px solid var(--neon-yellow);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        /* Login Screen */
+        .login-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-darker);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            font-family: 'VT323', monospace;
+        }
+        
+        .login-title {
+            font-family: 'VT323', monospace;
+            font-size: 5rem;
+            color: var(--neon-yellow);
+            text-shadow: 0 0 20px var(--neon-yellow);
+            margin-bottom: 30px;
+            letter-spacing: 5px;
+            animation: titleGlitch 8s infinite, pulse 3s infinite;
+        }
+        
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 500px;
+            max-width: 90%;
+        }
+        
+        .password-input {
+            background: transparent;
+            border: 1px solid var(--neon-yellow);
+            color: var(--neon-yellow);
+            padding: 15px;
+            font-family: 'VT323', monospace;
+            font-size: 1.8rem;
+            width: 100%;
+            margin-bottom: 20px;
+            text-align: center;
+            outline: none;
+            transition: all 0.3s;
+        }
+        
+        .password-input:focus {
+            box-shadow: 0 0 20px var(--neon-yellow);
+            transform: scale(1.05);
+        }
+        
+        .login-button {
+            background: transparent;
+            border: 1px solid var(--electric-cyan);
+            color: var(--electric-cyan);
+            padding: 15px 40px;
+            font-family: 'VT323', monospace;
+            font-size: 1.8rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .login-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 242, 0.3), transparent);
+            transition: left 0.5s;
+        }
+        
+        .login-button:hover::before {
+            left: 100%;
+        }
+        
+        .login-button:hover {
+            background: rgba(0, 255, 242, 0.1);
+            box-shadow: 0 0 20px var(--electric-cyan);
+            transform: translateY(-2px);
+        }
+        
+        /* Status Bar */
+        .status-bar {
+            padding: 10px 20px;
+            background: rgba(10, 10, 10, 0.8);
+            border-top: 1px solid var(--neon-yellow);
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.2rem;
+            font-family: 'VT323', monospace;
+            color: var(--neon-yellow);
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+        }
+        
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-online {
+            background: var(--success-green);
+            box-shadow: 0 0 5px var(--success-green);
+        }
+        
+        .status-encrypted {
+            background: var(--electric-cyan);
+            box-shadow: 0 0 5px var(--electric-cyan);
+        }
+        
+        /* Settings Panel */
+        .settings-panel {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--bg-darker);
+            border: 2px solid var(--neon-yellow);
+            padding: 30px;
+            z-index: 300;
+            width: 500px;
+            max-width: 90%;
+            font-family: 'VT323', monospace;
+            animation: modalAppear 0.5s ease-out;
+        }
+        
+        .settings-title {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            text-align: center;
+            color: var(--neon-yellow);
+        }
+        
+        .settings-form {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .settings-input {
+            background: transparent;
+            border: 1px solid var(--neon-yellow);
+            color: var(--neon-yellow);
+            padding: 12px;
+            font-family: 'VT323', monospace;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            outline: none;
+            transition: all 0.3s;
+        }
+        
+        .settings-input:focus {
+            box-shadow: 0 0 10px var(--neon-yellow);
+        }
+        
+        .settings-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        /* Message Display */
+        .message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+            text-align: center;
+            font-family: 'VT323', monospace;
+            font-size: 1.4rem;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        .message.success {
+            background: rgba(0, 255, 102, 0.1);
+            border: 1px solid var(--success-green);
+            color: var(--success-green);
+        }
+        
+        .message.error {
+            background: rgba(255, 0, 51, 0.1);
+            border: 1px solid var(--error-red);
+            color: var(--error-red);
+        }
+        
+        /* Hidden file input */
+        #fileInput {
+            display: none;
+        }
+        
+        /* New Features Panel */
+        .features-panel {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--bg-darker);
+            border: 2px solid var(--neon-yellow);
+            padding: 30px;
+            z-index: 300;
+            width: 600px;
+            max-width: 90%;
+            font-family: 'VT323', monospace;
+            animation: modalAppear 0.5s ease-out;
+        }
+        
+        .feature-item {
+            padding: 15px;
+            margin: 10px 0;
+            border: 1px solid var(--electric-cyan);
+            background: rgba(0, 255, 242, 0.05);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .feature-item:hover {
+            background: rgba(0, 255, 242, 0.1);
+            transform: translateX(10px);
+        }
+        
+        /* NEW STYLES FOR DELETE BUTTON AND FILE ACTIONS */
+        .file-actions {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            display: flex;
+            gap: 5px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .file-item:hover .file-actions {
+            opacity: 1;
+        }
+        
+        .file-action-btn {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid var(--neon-yellow);
+            color: var(--neon-yellow);
+            width: 25px;
+            height: 25px;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        
+        .file-action-btn:hover {
+            background: var(--error-red);
+            border-color: var(--error-red);
+            transform: scale(1.1);
+        }
+        
+        .file-action-btn.delete:hover {
+            background: var(--error-red);
+            border-color: var(--error-red);
+        }
+        
+        .file-action-btn.download:hover {
+            background: var(--success-green);
+            border-color: var(--success-green);
+        }
+        
+        /* Modal buttons */
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 230, 0, 0.3);
+        }
+        
+        /* Confirmation dialog */
+        .confirmation-dialog {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .confirmation-content {
+            background: var(--bg-darker);
+            border: 2px solid var(--error-red);
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            font-family: 'VT323', monospace;
+            animation: modalAppear 0.3s ease-out;
+        }
+        
+        .confirmation-title {
+            font-size: 1.8rem;
+            color: var(--error-red);
+            margin-bottom: 15px;
+        }
+        
+        .confirmation-message {
+            font-size: 1.4rem;
+            margin-bottom: 25px;
+            color: var(--neon-yellow);
+        }
+        
+        .confirmation-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        /* Document preview styling */
+        .document-preview {
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid var(--neon-yellow);
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1rem;
+            white-space: pre-wrap;
+        }
+        
+        .unsupported-file {
+            text-align: center;
+            padding: 40px;
+            color: var(--error-red);
+            font-size: 1.5rem;
+        }
+        
+        .download-link {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: transparent;
+            border: 1px solid var(--electric-cyan);
+            color: var(--electric-cyan);
+            text-decoration: none;
+            font-family: 'VT323', monospace;
+            font-size: 1.4rem;
+            transition: all 0.3s;
+        }
+        
+        .download-link:hover {
+            background: rgba(0, 255, 242, 0.1);
+            box-shadow: 0 0 15px var(--electric-cyan);
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .file-actions {
+                opacity: 1; /* Always show on mobile */
+            }
+            
+            .file-action-btn {
+                width: 30px;
+                height: 30px;
+                font-size: 1rem;
+            }
+        }
+        
+        /* Animations */
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        
+        @keyframes flicker {
+            0% { opacity: 0.05; }
+            5% { opacity: 0.1; }
+            10% { opacity: 0.07; }
+            15% { opacity: 0.1; }
+            20% { opacity: 0.07; }
+            25% { opacity: 0.1; }
+            30% { opacity: 0.08; }
+            35% { opacity: 0.1; }
+            40% { opacity: 0.07; }
+            45% { opacity: 0.1; }
+            50% { opacity: 0.08; }
+            55% { opacity: 0.1; }
+            60% { opacity: 0.07; }
+            65% { opacity: 0.1; }
+            70% { opacity: 0.08; }
+            75% { opacity: 0.1; }
+            80% { opacity: 0.07; }
+            85% { opacity: 0.1; }
+            90% { opacity: 0.08; }
+            95% { opacity: 0.1; }
+            100% { opacity: 0.07; }
+        }
+        
+        @keyframes noise {
+            0% { transform: translate(0,0); }
+            10% { transform: translate(-5%,-5%); }
+            20% { transform: translate(-10%,5%); }
+            30% { transform: translate(5%,-10%); }
+            40% { transform: translate(-5%,15%); }
+            50% { transform: translate(-10%,5%); }
+            60% { transform: translate(15%,0); }
+            70% { transform: translate(0,10%); }
+            80% { transform: translate(-15%,0); }
+            90% { transform: translate(10%,5%); }
+            100% { transform: translate(5%,0); }
+        }
+        
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+        
+        @keyframes titleGlitch {
+            0%, 100% { transform: translate(0); }
+            95% { transform: translate(0); }
+            96% { transform: translate(-2px, -2px); }
+            97% { transform: translate(2px, 2px); }
+            98% { transform: translate(-2px, 2px); }
+            99% { transform: translate(2px, -2px); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes containerGlow {
+            0%, 100% { box-shadow: 0 0 30px rgba(255, 230, 0, 0.5), inset 0 0 30px rgba(255, 230, 0, 0.1); }
+            50% { box-shadow: 0 0 40px rgba(255, 230, 0, 0.7), inset 0 0 40px rgba(255, 230, 0, 0.2); }
+        }
+        
+        @keyframes borderFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        @keyframes modalAppear {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+        
+        @keyframes slideIn {
+            0% { transform: translateY(-20px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        
+        /* Intro Animations */
+        @keyframes titleAppear {
+            0% { opacity: 0; transform: translateY(50px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes subtitleAppear {
+            0% { opacity: 0; transform: translateY(30px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes loadingBarAppear {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        
+        @keyframes loadingProgress {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+        
+        .blink {
+            animation: blink 1s infinite;
+        }
+        
+        .glitch {
+            animation: glitch 0.5s;
+        }
+        
+        /* Matrix Rain Effect */
+        .matrix-rain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.1;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .cybervault-content {
+                flex-direction: column;
+            }
+            
+            .cybervault-sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--neon-yellow);
+            }
+            
+            .file-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+            
+            .cybervault-title {
+                font-size: 2rem;
+            }
+            
+            .login-title {
+                font-size: 3rem;
+            }
+            
+            .intro-title {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Intro Screen -->
+    <div class="intro-screen" id="introScreen">
+        <canvas class="matrix-intro" id="matrixIntro"></canvas>
+        <div class="intro-title">CYBERVAULT 2090</div>
+        <div class="intro-subtitle">INITIALIZING QUANTUM ENCRYPTION SYSTEMS</div>
+        <div class="loading-bar">
+            <div class="loading-progress"></div>
+        </div>
+    </div>
+
+    <!-- Visual Effects -->
+    <div class="crt-overlay"></div>
+    <div class="crt-flicker"></div>
+    <div class="vhs-noise"></div>
+    <canvas class="matrix-rain" id="matrixRain"></canvas>
+    
+    <div class="cybervault-container" id="cybervaultContainer">
+        <!-- Login Screen -->
+        <div class="login-screen" id="loginScreen">
+            <div class="login-title">CYBERVAULT 2090</div>
+            <div class="login-form">
+                <input type="password" class="password-input" id="passwordInput" placeholder="ENTER ACCESS CODE">
+                <button class="login-button" id="loginButton">AUTHENTICATE</button>
+            </div>
+        </div>
+        
+        <!-- Main Interface (Hidden until login) -->
+        <div class="cybervault-header" id="mainHeader" style="display: none;">
+            <div>
+                <div class="cybervault-title">CYBERVAULT 2090</div>
+                <div class="cybervault-subtitle">SECURE ENCRYPTED STORAGE SYSTEM</div>
+            </div>
+            <div>
+                <button class="cyber-button" id="featuresButton">FEATURES</button>
+                <button class="cyber-button" id="settingsButton">SETTINGS</button>
+                <button class="cyber-button" id="logoutButton">LOGOUT</button>
+            </div>
+        </div>
+        
+        <div class="cybervault-content" id="mainContent" style="display: none;">
+            <div class="cybervault-sidebar">
+                <h3 style="color: var(--neon-yellow);">STORAGE SECTIONS</h3>
+                <ul class="folder-list">
+                    <li class="folder-item active" data-folder="images">
+                        <span class="folder-icon">🖼️</span> IMAGES
+                    </li>
+                    <li class="folder-item" data-folder="documents">
+                        <span class="folder-icon">📄</span> DOCUMENTS
+                    </li>
+                    <li class="folder-item" data-folder="projects">
+                        <span class="folder-icon">💻</span> PROJECTS
+                    </li>
+                    <li class="folder-item" data-folder="secrets">
+                        <span class="folder-icon">🔐</span> SECRETS
+                    </li>
+                    <li class="folder-item" data-folder="archives">
+                        <span class="folder-icon">🗃️</span> ARCHIVES
+                    </li>
+                </ul>
+                
+                <!-- UPLOAD SECTION - ALWAYS VISIBLE -->
+                <div class="upload-section">
+                    <div class="upload-title">UPLOAD FILES</div>
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-icon">⬆️</div>
+                        <div class="upload-text">CLICK TO UPLOAD</div>
+                        <div class="file-type-hint" id="fileTypeHint">Accepts all file types</div>
+                    </div>
+                    <input type="file" id="fileInput" multiple>
+                </div>
+                
+                <div style="margin-top: auto; padding-top: 20px;">
+                    <button class="cyber-button primary" id="terminalToggle">TERMINAL MODE</button>
+                    <button class="cyber-button" id="scanSystem">SYSTEM SCAN</button>
+                </div>
+            </div>
+            
+            <div class="cybervault-terminal">
+                <div class="terminal-content" id="terminalContent">
+                    <!-- Terminal output will be displayed here -->
+                </div>
+                
+                <div class="file-grid" id="fileGrid">
+                    <!-- Files will be displayed here -->
+                </div>
+                
+                <div class="command-input-area">
+                    <div class="command-prompt">></div>
+                    <input type="text" class="command-input" id="commandInput" placeholder="ENTER COMMAND...">
+                </div>
+            </div>
+        </div>
+        
+        <div class="status-bar" id="statusBar" style="display: none;">
+            <div class="status-item">
+                <div class="status-indicator status-online"></div>
+                SYSTEM: ONLINE
+            </div>
+            <div class="status-item">
+                <div class="status-indicator status-encrypted"></div>
+                ENCRYPTION: QUANTUM ACTIVE
+            </div>
+            <div class="status-item" id="fileCount">FILES: 0</div>
+            <div class="status-item" id="storageUsed">STORAGE: 0 MB</div>
+            <div class="status-item" id="systemTime">TIME: --:--:--</div>
+        </div>
+    </div>
+    
+    <!-- File Preview Modal -->
+    <div class="modal" id="fileModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle">FILE PREVIEW</div>
+                <button class="modal-close" id="modalClose">✕</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- File content will be displayed here -->
+            </div>
+            <div class="modal-buttons" id="modalButtons">
+                <!-- Action buttons will be added here -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Delete Confirmation Dialog -->
+    <div class="confirmation-dialog" id="deleteConfirmation">
+        <div class="confirmation-content">
+            <div class="confirmation-title">CONFIRM DELETION</div>
+            <div class="confirmation-message" id="deleteMessage">Are you sure you want to delete this file? This action cannot be undone.</div>
+            <div class="confirmation-buttons">
+                <button class="cyber-button" id="cancelDelete">CANCEL</button>
+                <button class="cyber-button primary" id="confirmDelete" style="border-color: var(--error-red); color: var(--error-red);">DELETE</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Settings Panel -->
+    <div class="settings-panel" id="settingsPanel">
+        <div class="settings-title">SYSTEM SETTINGS</div>
+        <div class="settings-form">
+            <div id="settingsMessage"></div>
+            <input type="password" class="settings-input" id="currentPassword" placeholder="CURRENT PASSWORD">
+            <input type="password" class="settings-input" id="newPassword" placeholder="NEW PASSWORD">
+            <input type="password" class="settings-input" id="confirmPassword" placeholder="CONFIRM NEW PASSWORD">
+            <div class="settings-buttons">
+                <button class="cyber-button" id="cancelSettings">CANCEL</button>
+                <button class="cyber-button primary" id="saveSettings">SAVE CHANGES</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Features Panel -->
+    <div class="features-panel" id="featuresPanel">
+        <div class="settings-title">SYSTEM FEATURES</div>
+        <div class="settings-form">
+            <div class="feature-item" onclick="runSystemScan()">
+                <strong>SYSTEM INTEGRITY SCAN</strong><br>
+                Check vault security and file integrity
+            </div>
+            <div class="feature-item" onclick="exportVaultData()">
+                <strong>EXPORT VAULT DATA</strong><br>
+                Create backup of all encrypted files
+            </div>
+            <div class="feature-item" onclick="showSecurityLog()">
+                <strong>SECURITY LOG</strong><br>
+                View access history and security events
+            </div>
+            <div class="feature-item" onclick="runDefragmentation()">
+                <strong>STORAGE DEFRAGMENTATION</strong><br>
+                Optimize file storage and performance
+            </div>
+            <div class="settings-buttons">
+                <button class="cyber-button" id="cancelFeatures">CLOSE</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Application state
+        const state = {
+            currentFolder: 'images',
+            isTerminalMode: false,
+            files: {
+                images: [
+                    { name: 'SCREENSHOT_001.png', type: 'image', content: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMDAwIi8+CiAgPHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiNmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIwLjNlbSI+U0FNUExFIElNQUdFPC90ZXh0Pgo8L3N2Zz4=' },
+                    { name: 'PHOTO_2089.jpg', type: 'image', content: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1zbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMTExIi8+CiAgPHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiNmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIwLjNlbSI+UEhPVE8gMjA4OTwvdGV4dD4KPC9zdmc+' }
+                ],
+                documents: [
+                    { name: 'RESEARCH_NOTES.txt', type: 'text', content: 'TOP SECRET RESEARCH NOTES:\n\nProject Chimera shows promising results...\nNeural interface compatibility at 92%...\nFurther testing required before deployment.' },
+                    { name: 'PERSONAL_LOG.md', type: 'text', content: 'PERSONAL LOG - 12.15.2089\n\nToday I finally cracked the encryption on the old corporate database. The secrets they tried to bury are now mine. The revolution continues...' }
+                ],
+                projects: [
+                    { name: 'NEURAL_LINK.zip', type: 'archive', content: 'NEURAL INTERFACE PROJECT\nStatus: In Development\nProgress: 78%\nTeam: Solo\n\nNotes: The prototype shows promising results but requires more testing before human trials.' },
+                    { name: 'QUANTUM_ENCRYPT.rar', type: 'archive', content: 'QUANTUM ENCRYPTION ALGORITHM\nStatus: Completed\nSecurity Level: Maximum\n\nDescription: Unbreakable encryption using quantum entanglement principles.' }
+                ],
+                secrets: [
+                    { name: 'CONFIDENTIAL.dat', type: 'encrypted', content: 'ACCESS RESTRICTED\n\nThis file requires additional clearance level.\nPlease contact system administrator for access.' }
+                ],
+                archives: []
+            },
+            password: localStorage.getItem('cybervault_password') || 'CYBERVAULT2090',
+            securityLog: [],
+            fileToDelete: null // Track which file is being deleted
+        };
+
+        // DOM Elements
+        const introScreen = document.getElementById('introScreen');
+        const cybervaultContainer = document.getElementById('cybervaultContainer');
+        const loginScreen = document.getElementById('loginScreen');
+        const mainHeader = document.getElementById('mainHeader');
+        const mainContent = document.getElementById('mainContent');
+        const statusBar = document.getElementById('statusBar');
+        const passwordInput = document.getElementById('passwordInput');
+        const loginButton = document.getElementById('loginButton');
+        const logoutButton = document.getElementById('logoutButton');
+        const settingsButton = document.getElementById('settingsButton');
+        const featuresButton = document.getElementById('featuresButton');
+        const terminalToggle = document.getElementById('terminalToggle');
+        const scanSystem = document.getElementById('scanSystem');
+        const terminalContent = document.getElementById('terminalContent');
+        const commandInput = document.getElementById('commandInput');
+        const fileGrid = document.getElementById('fileGrid');
+        const fileModal = document.getElementById('fileModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalBody = document.getElementById('modalBody');
+        const modalButtons = document.getElementById('modalButtons');
+        const modalClose = document.getElementById('modalClose');
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileTypeHint = document.getElementById('fileTypeHint');
+        const folderItems = document.querySelectorAll('.folder-item');
+        const fileCount = document.getElementById('fileCount');
+        const storageUsed = document.getElementById('storageUsed');
+        const systemTime = document.getElementById('systemTime');
+        const settingsPanel = document.getElementById('settingsPanel');
+        const featuresPanel = document.getElementById('featuresPanel');
+        const currentPassword = document.getElementById('currentPassword');
+        const newPassword = document.getElementById('newPassword');
+        const confirmPassword = document.getElementById('confirmPassword');
+        const cancelSettings = document.getElementById('cancelSettings');
+        const saveSettings = document.getElementById('saveSettings');
+        const cancelFeatures = document.getElementById('cancelFeatures');
+        const settingsMessage = document.getElementById('settingsMessage');
+        
+        // NEW ELEMENTS FOR DELETE FUNCTIONALITY
+        const deleteConfirmation = document.getElementById('deleteConfirmation');
+        const deleteMessage = document.getElementById('deleteMessage');
+        const cancelDelete = document.getElementById('cancelDelete');
+        const confirmDelete = document.getElementById('confirmDelete');
+
+        // File type hints for different folders
+        const fileTypeHints = {
+            images: 'Accepts: JPG, PNG, GIF, SVG',
+            documents: 'Accepts: TXT, PDF, DOC, DOCX, MD',
+            projects: 'Accepts: ZIP, RAR, CODE FILES',
+            secrets: 'Accepts: ENCRYPTED FILES',
+            archives: 'Accepts: ALL FILE TYPES'
+        };
+
+        // Initialize the application
+        function init() {
+            // Start intro animation
+            initIntroAnimation();
+            
+            // Load files from localStorage
+            loadFilesFromStorage();
+            
+            // Initialize Matrix Rain
+            initMatrixRain();
+            
+            // Start system clock
+            updateSystemTime();
+            setInterval(updateSystemTime, 1000);
+            
+            // Event listeners
+            loginButton.addEventListener('click', handleLogin);
+            passwordInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleLogin();
+            });
+            
+            logoutButton.addEventListener('click', handleLogout);
+            settingsButton.addEventListener('click', showSettings);
+            featuresButton.addEventListener('click', showFeatures);
+            terminalToggle.addEventListener('click', toggleTerminalMode);
+            scanSystem.addEventListener('click', runSystemScan);
+            commandInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleCommand();
+            });
+            
+            modalClose.addEventListener('click', () => {
+                fileModal.style.display = 'none';
+            });
+            
+            uploadArea.addEventListener('click', () => {
+                fileInput.click();
+            });
+            
+            fileInput.addEventListener('change', handleFileUpload);
+            
+            // Folder selection - update file type hint
+            folderItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    folderItems.forEach(i => i.classList.remove('active'));
+                    item.classList.add('active');
+                    state.currentFolder = item.dataset.folder;
+                    renderFiles();
+                    updateFileTypeHint();
+                });
+            });
+            
+            // Settings panel
+            cancelSettings.addEventListener('click', hideSettings);
+            saveSettings.addEventListener('click', handlePasswordChange);
+            cancelFeatures.addEventListener('click', hideFeatures);
+            
+            // NEW: Delete confirmation dialog
+            cancelDelete.addEventListener('click', () => {
+                deleteConfirmation.style.display = 'none';
+                state.fileToDelete = null;
+            });
+            
+            confirmDelete.addEventListener('click', confirmFileDeletion);
+            
+            // Close modal with ESC key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    fileModal.style.display = 'none';
+                    settingsPanel.style.display = 'none';
+                    featuresPanel.style.display = 'none';
+                    deleteConfirmation.style.display = 'none';
+                }
+            });
+            
+            // Initial render
+            renderFiles();
+            updateStatus();
+            updateFileTypeHint();
+            
+            // Add to security log
+            addSecurityLog('System boot initialized');
+        }
+
+        // Initialize intro animation
+        function initIntroAnimation() {
+            // Create matrix rain for intro
+            const canvas = document.getElementById('matrixIntro');
+            if (!(canvas instanceof HTMLCanvasElement)) return;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+            function resizeIntroCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resizeIntroCanvas();
+            window.addEventListener('resize', resizeIntroCanvas);
+
+            const chars = "010101010110010101";
+            const fontSize = 14;
+            const columns = canvas.width / fontSize;
+            const drops = [];
+            
+            for(let i = 0; i < columns; i++) {
+                drops[i] = 1;
+            }
+            
+            function draw() {
+                ctx.fillStyle = 'rgba(5, 5, 5, 0.05)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.fillStyle = '#00ff41';
+                ctx.font = fontSize + 'px monospace';
+                
+                for(let i = 0; i < drops.length; i++) {
+                    const text = chars[Math.floor(Math.random() * chars.length)];
+                    ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                    
+                    if(drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                        drops[i] = 0;
+                    }
+                    
+                    drops[i]++;
+                }
+            }
+            
+            const introInterval = setInterval(draw, 33);
+            
+            // After intro completes, show main interface
+            setTimeout(() => {
+                clearInterval(introInterval);
+                introScreen.style.display = 'none';
+                cybervaultContainer.style.display = 'flex';
+                
+                // Show boot message
+                addTerminalLine('CYBERVAULT 2090 BOOT SEQUENCE INITIATED...');
+                addTerminalLine('LOADING QUANTUM ENCRYPTION MODULES...');
+                addTerminalLine('INITIALIZING NEURAL SECURITY PROTOCOLS...');
+                addTerminalLine('SYSTEM READY. AWAITING AUTHENTICATION.');
+            }, 5000);
+        }
+
+        // Update file type hint based on current folder
+        function updateFileTypeHint() {
+            fileTypeHint.textContent = fileTypeHints[state.currentFolder] || 'Accepts all file types';
+        }
+
+        // Initialize Matrix Rain effect
+        function initMatrixRain() {
+            const canvas = document.getElementById('matrixRain');
+            if (!(canvas instanceof HTMLCanvasElement)) return;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+            function resizeMatrixCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resizeMatrixCanvas();
+            window.addEventListener('resize', resizeMatrixCanvas);
+            
+            const chars = "010101010110010101";
+            const fontSize = 14;
+            const columns = canvas.width / fontSize;
+            const drops = [];
+            
+            for(let i = 0; i < columns; i++) {
+                drops[i] = 1;
+            }
+            
+            function draw() {
+                ctx.fillStyle = 'rgba(5, 5, 5, 0.05)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.fillStyle = '#00ff41';
+                ctx.font = fontSize + 'px monospace';
+                
+                for(let i = 0; i < drops.length; i++) {
+                    const text = chars[Math.floor(Math.random() * chars.length)];
+                    ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                    
+                    if(drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                        drops[i] = 0;
+                    }
+                    
+                    drops[i]++;
+                }
+            }
+            
+            setInterval(draw, 33);
+        }
+
+        // Update system time
+        function updateSystemTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { hour12: false });
+            systemTime.textContent = `TIME: ${timeString}`;
+        }
+
+        // Load files from localStorage
+        function loadFilesFromStorage() {
+            const storedFiles = localStorage.getItem('cybervault_files');
+            if (storedFiles) {
+                try {
+                    const parsedFiles = JSON.parse(storedFiles);
+                    // Replace default files with stored files
+                    state.files = parsedFiles;
+                } catch (e) {
+                    console.error('Error loading files from storage:', e);
+                    addTerminalLine('ERROR: Could not load files from storage.');
+                }
+            }
+            
+            // Load security log
+            const storedLog = localStorage.getItem('cybervault_security_log');
+            if (storedLog) {
+                try {
+                    state.securityLog = JSON.parse(storedLog);
+                } catch (e) {
+                    console.error('Error loading security log:', e);
+                }
+            }
+        }
+
+        // Save files to localStorage
+        function saveFilesToStorage() {
+            try {
+                localStorage.setItem('cybervault_files', JSON.stringify(state.files));
+            } catch (e) {
+                console.error('Error saving files to storage:', e);
+                addTerminalLine('ERROR: Could not save files to storage.');
+            }
+        }
+
+        // Add to security log
+        function addSecurityLog(message) {
+            const timestamp = new Date().toISOString();
+            state.securityLog.push({ timestamp, message });
+            
+            // Keep only last 100 entries
+            if (state.securityLog.length > 100) {
+                state.securityLog = state.securityLog.slice(-100);
+            }
+            
+            // Save to localStorage
+            try {
+                localStorage.setItem('cybervault_security_log', JSON.stringify(state.securityLog));
+            } catch (e) {
+                console.error('Error saving security log:', e);
+            }
+        }
+
+        // Handle user login
+        function handleLogin() {
+            const password = passwordInput.value;
+            
+            if (password === state.password) {
+                // Successful login - show main interface
+                loginScreen.style.display = 'none';
+                mainHeader.style.display = 'flex';
+                mainContent.style.display = 'flex';
+                statusBar.style.display = 'flex';
+                
+                // Ensure sidebar / upload area is visible
+                const sidebar = document.querySelector('.cybervault-sidebar');
+                if (sidebar) sidebar.style.zIndex = '50';
+                if (uploadArea) {
+                    uploadArea.style.zIndex = '60';
+                    uploadArea.style.display = 'block';
+                }
+                
+                updateFileTypeHint();
+                renderFiles();
+
+                addTerminalLine('ACCESS GRANTED. WELCOME TO CYBERVAULT 2090.');
+                addTerminalLine('SYSTEM READY. ALL SECURITY PROTOCOLS ACTIVE.');
+                addSecurityLog('User authentication successful');
+            } else {
+                // Failed login
+                addTerminalLine('ACCESS DENIED. INCORRECT PASSWORD.');
+                passwordInput.value = '';
+                passwordInput.classList.add('glitch');
+                setTimeout(() => {
+                    passwordInput.classList.remove('glitch');
+                }, 500);
+                addSecurityLog('Failed authentication attempt');
+            }
+        }
+
+        // Handle user logout
+        function handleLogout() {
+            loginScreen.style.display = 'flex';
+            mainHeader.style.display = 'none';
+            mainContent.style.display = 'none';
+            statusBar.style.display = 'none';
+            passwordInput.value = '';
+            addTerminalLine('LOGGING OUT... SESSION TERMINATED.');
+            addSecurityLog('User logged out');
+        }
+
+        // Show settings panel
+        function showSettings() {
+            settingsPanel.style.display = 'block';
+            currentPassword.value = '';
+            newPassword.value = '';
+            confirmPassword.value = '';
+            settingsMessage.innerHTML = '';
+        }
+
+        // Hide settings panel
+        function hideSettings() {
+            settingsPanel.style.display = 'none';
+        }
+
+        // Show features panel
+        function showFeatures() {
+            featuresPanel.style.display = 'block';
+        }
+
+        // Hide features panel
+        function hideFeatures() {
+            featuresPanel.style.display = 'none';
+        }
+
+        // Handle password change
+        function handlePasswordChange() {
+            const current = currentPassword.value;
+            const newPass = newPassword.value;
+            const confirm = confirmPassword.value;
+            
+            // Clear previous messages
+            settingsMessage.innerHTML = '';
+            
+            if (current !== state.password) {
+                showSettingsMessage('ERROR: Current password is incorrect.', 'error');
+                return;
+            }
+            
+            if (newPass.length < 4) {
+                showSettingsMessage('ERROR: New password must be at least 4 characters.', 'error');
+                return;
+            }
+            
+            if (newPass !== confirm) {
+                showSettingsMessage('ERROR: New passwords do not match.', 'error');
+                return;
+            }
+            
+            // Update password
+            state.password = newPass;
+            localStorage.setItem('cybervault_password', newPass);
+            
+            showSettingsMessage('SUCCESS: Password updated successfully.', 'success');
+            addTerminalLine('SYSTEM: Password updated successfully.');
+            addSecurityLog('Password changed successfully');
+            
+            // Clear fields
+            currentPassword.value = '';
+            newPassword.value = '';
+            confirmPassword.value = '';
+            
+            // Hide settings after success
+            setTimeout(() => {
+                hideSettings();
+            }, 1500);
+        }
+
+        // Show message in settings panel
+        function showSettingsMessage(text, type) {
+            settingsMessage.innerHTML = `<div class="message ${type}">${text}</div>`;
+        }
+
+        // System scan feature
+        function runSystemScan() {
+            hideFeatures();
+            addTerminalLine('INITIATING SYSTEM INTEGRITY SCAN...');
+            
+            // Simulate scanning process
+            setTimeout(() => {
+                addTerminalLine('SCANNING QUANTUM ENCRYPTION MODULES... ✓');
+            }, 800);
+            
+            setTimeout(() => {
+                addTerminalLine('VERIFYING FILE INTEGRITY... ✓');
+            }, 1600);
+            
+            setTimeout(() => {
+                addTerminalLine('CHECKING SECURITY PROTOCOLS... ✓');
+            }, 2400);
+            
+            setTimeout(() => {
+                addTerminalLine('SYSTEM SCAN COMPLETE. ALL SYSTEMS NOMINAL.');
+                addSecurityLog('System integrity scan completed');
+            }, 3200);
+        }
+
+        // Export vault data
+        function exportVaultData() {
+            hideFeatures();
+            addTerminalLine('PREPARING VAULT DATA EXPORT...');
+            
+            setTimeout(() => {
+                const exportData = {
+                    timestamp: new Date().toISOString(),
+                    fileCount: Object.values(state.files).flat().length,
+                    folders: Object.keys(state.files)
+                };
+                
+                addTerminalLine(`EXPORTING ${exportData.fileCount} FILES...`);
+                addTerminalLine('DATA ENCRYPTED AND READY FOR DOWNLOAD.');
+                addSecurityLog('Vault data export initiated');
+                
+                // Create download link
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
+                const downloadAnchorNode = document.createElement('a');
+                downloadAnchorNode.setAttribute("href", dataStr);
+                downloadAnchorNode.setAttribute("download", "cybervault_export_" + new Date().toISOString().split('T')[0] + ".json");
+                document.body.appendChild(downloadAnchorNode);
+                downloadAnchorNode.click();
+                downloadAnchorNode.remove();
+            }, 1500);
+        }
+
+        // Show security log
+        function showSecurityLog() {
+            hideFeatures();
+            addTerminalLine('ACCESSING SECURITY LOG...');
+            
+            setTimeout(() => {
+                addTerminalLine('SECURITY LOG ENTRIES:');
+                state.securityLog.slice(-10).forEach(entry => {
+                    const date = new Date(entry.timestamp).toLocaleString();
+                    addTerminalLine(`[${date}] ${entry.message}`);
+                });
+                addSecurityLog('Security log accessed');
+            }, 1000);
+        }
+
+        // Run defragmentation
+        function runDefragmentation() {
+            hideFeatures();
+            addTerminalLine('INITIATING STORAGE DEFRAGMENTATION...');
+            
+            setTimeout(() => {
+                addTerminalLine('ANALYZING FILE ALLOCATION TABLES...');
+            }, 1000);
+            
+            setTimeout(() => {
+                addTerminalLine('OPTIMIZING STORAGE CLUSTERS...');
+            }, 2000);
+            
+            setTimeout(() => {
+                addTerminalLine('DEFRAGMENTATION COMPLETE. STORAGE EFFICIENCY +15%');
+                addSecurityLog('Storage defragmentation completed');
+            }, 3000);
+        }
+
+        // Toggle between terminal and file view
+        function toggleTerminalMode() {
+            state.isTerminalMode = !state.isTerminalMode;
+            
+            if (state.isTerminalMode) {
+                fileGrid.style.display = 'none';
+                terminalContent.style.display = 'block';
+                terminalToggle.textContent = 'FILE MODE';
+                addTerminalLine('TERMINAL MODE ACTIVATED.');
+            } else {
+                fileGrid.style.display = 'grid';
+                terminalContent.style.display = 'none';
+                terminalToggle.textContent = 'TERMINAL MODE';
+                addTerminalLine('FILE BROWSER MODE ACTIVATED.');
+            }
+        }
+
+        // Handle terminal commands
+        function handleCommand() {
+            const command = commandInput.value.trim().toUpperCase();
+            commandInput.value = '';
+            
+            if (command === '') return;
+            
+            addTerminalLine(`> ${command}`);
+            
+            switch(command) {
+                case 'HELP':
+                    addTerminalLine('AVAILABLE COMMANDS:');
+                    addTerminalLine('HELP - Show this help message');
+                    addTerminalLine('CLEAR - Clear terminal');
+                    addTerminalLine('ABOUT - System information');
+                    addTerminalLine('STATUS - System status');
+                    addTerminalLine('SCAN - Run system scan');
+                    addTerminalLine('LOGOUT - End session');
+                    break;
+                    
+                case 'CLEAR':
+                    terminalContent.innerHTML = '';
+                    break;
+                    
+                case 'ABOUT':
+                    addTerminalLine('CYBERVAULT 2090 - PERSONAL ENCRYPTED STORAGE');
+                    addTerminalLine('VERSION: 2.90 | SECURITY: QUANTUM MAXIMUM');
+                    addTerminalLine('NEURAL ENCRYPTION TECHNOLOGY');
+                    addTerminalLine('DEVELOPED BY NEO-TECH SYSTEMS');
+                    break;
+                    
+                case 'STATUS':
+                    addTerminalLine('SYSTEM STATUS: ONLINE');
+                    addTerminalLine('ENCRYPTION: QUANTUM ACTIVE');
+                    addTerminalLine('THREAT LEVEL: LOW');
+                    addTerminalLine('STORAGE: 78% UTILIZED');
+                    break;
+                    
+                case 'SCAN':
+                    runSystemScan();
+                    break;
+                    
+                case 'LOGOUT':
+                    handleLogout();
+                    break;
+                    
+                default:
+                    addTerminalLine(`ERROR: Unknown command '${command}'`);
+                    addTerminalLine('Type HELP for available commands');
+            }
+        }
+
+        // Add a line to the terminal
+        function addTerminalLine(text) {
+            const line = document.createElement('div');
+            line.className = 'terminal-line';
+            line.textContent = text;
+            terminalContent.appendChild(line);
+            terminalContent.scrollTop = terminalContent.scrollHeight;
+        }
+
+        // Render files in the current folder
+        function renderFiles() {
+            fileGrid.innerHTML = '';
+            const files = state.files[state.currentFolder] || [];
+            
+            if (files.length === 0) {
+                fileGrid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #666; font-size: 1.5rem;">NO FILES IN THIS FOLDER</div>';
+                return;
+            }
+            
+            files.forEach((file, index) => {
+                const fileElement = document.createElement('div');
+                fileElement.className = 'file-item';
+                
+                // Determine icon based on file type
+                let icon = '📄';
+                if (file.type === 'image') icon = '🖼️';
+                if (file.type === 'archive') icon = '📦';
+                if (file.type === 'encrypted') icon = '🔒';
+                if (file.type === 'document') icon = '📋';
+                if (file.type === 'pdf') icon = '📕';
+                
+                fileElement.innerHTML = `
+                    <div class="file-icon">${icon}</div>
+                    <div class="file-name">${file.name}</div>
+                    <div class="file-actions">
+                        <button class="file-action-btn download" title="Download">
+                            ⬇️
+                        </button>
+                        <button class="file-action-btn delete" title="Delete">
+                            ✕
+                        </button>
+                    </div>
+                `;
+                
+                // Open file on click
+                fileElement.addEventListener('click', (e) => {
+                    if (!e.target.closest('.file-actions')) {
+                        openFile(file);
+                    }
+                });
+                
+                // Download button
+                const downloadBtn = fileElement.querySelector('.file-action-btn.download');
+                downloadBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    downloadFile(file);
+                });
+                
+                // Delete button
+                const deleteBtn = fileElement.querySelector('.file-action-btn.delete');
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    showDeleteConfirmation(file, index);
+                });
+                
+                fileGrid.appendChild(fileElement);
+            });
+        }
+
+        // Open a file for preview
+        function openFile(file) {
+            modalTitle.textContent = file.name;
+            modalButtons.innerHTML = '';
+            
+            // Add action buttons to modal
+            const downloadBtn = document.createElement('button');
+            downloadBtn.className = 'cyber-button primary';
+            downloadBtn.textContent = 'DOWNLOAD';
+            downloadBtn.addEventListener('click', () => {
+                downloadFile(file);
+            });
+            
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'cyber-button';
+            deleteBtn.style.borderColor = 'var(--error-red)';
+            deleteBtn.style.color = 'var(--error-red)';
+            deleteBtn.textContent = 'DELETE';
+            deleteBtn.addEventListener('click', () => {
+                fileModal.style.display = 'none';
+                showDeleteConfirmation(file);
+            });
+            
+            modalButtons.appendChild(downloadBtn);
+            modalButtons.appendChild(deleteBtn);
+            
+            // Display file content based on type
+            if (file.type === 'image') {
+                modalBody.innerHTML = `
+                    <div class="file-preview">
+                        <img src="${file.content}" alt="${file.name}">
+                    </div>
+                `;
+            } else if (file.type === 'pdf') {
+                // For PDF files, we can't display them directly, so show download option
+                modalBody.innerHTML = `
+                    <div class="unsupported-file">
+                        <div>PDF PREVIEW NOT AVAILABLE</div>
+                        <div style="margin-top: 10px; font-size: 1.2rem;">This file type requires download to view</div>
+                    </div>
+                `;
+            } else if (file.type === 'document') {
+                // For document files (Word, etc.), we can't display them directly
+                modalBody.innerHTML = `
+                    <div class="unsupported-file">
+                        <div>DOCUMENT PREVIEW NOT AVAILABLE</div>
+                        <div style="margin-top: 10px; font-size: 1.2rem;">This file type requires download to view</div>
+                    </div>
+                `;
+            } else {
+                // For text files
+                modalBody.innerHTML = `
+                    <div class="file-preview">
+                        <div class="document-preview">${file.content}</div>
+                    </div>
+                `;
+            }
+            
+            fileModal.style.display = 'flex';
+            addSecurityLog(`File accessed: ${file.name}`);
+        }
+
+        // Download a file
+        function downloadFile(file) {
+            let blob, filename;
+            
+            if (file.type === 'image') {
+                // For images stored as data URLs
+                blob = dataURLToBlob(file.content);
+                filename = file.name;
+            } else if (file.type === 'pdf' || file.type === 'document') {
+                // For binary files stored as data URLs
+                blob = dataURLToBlob(file.content);
+                filename = file.name;
+            } else {
+                // For text files
+                blob = new Blob([file.content], { type: 'text/plain' });
+                filename = file.name;
+            }
+            
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            addTerminalLine(`FILE DOWNLOADED: ${file.name}`);
+            addSecurityLog(`File downloaded: ${file.name}`);
+        }
+
+        // Convert data URL to Blob
+        function dataURLToBlob(dataURL) {
+            const parts = dataURL.split(';base64,');
+            const contentType = parts[0].split(':')[1];
+            const raw = window.atob(parts[1]);
+            const uInt8Array = new Uint8Array(raw.length);
+            
+            for (let i = 0; i < raw.length; ++i) {
+                uInt8Array[i] = raw.charCodeAt(i);
+            }
+            
+            return new Blob([uInt8Array], { type: contentType });
+        }
+
+        // Show delete confirmation dialog
+        function showDeleteConfirmation(file, index = null) {
+            state.fileToDelete = { file, index };
+            deleteMessage.textContent = `Are you sure you want to delete "${file.name}"? This action cannot be undone.`;
+            deleteConfirmation.style.display = 'flex';
+        }
+
+        // Confirm and execute file deletion
+        function confirmFileDeletion() {
+            if (!state.fileToDelete) return;
+            
+            const { file, index } = state.fileToDelete;
+            
+            // Find and remove the file from the current folder
+            const folderFiles = state.files[state.currentFolder];
+            if (folderFiles && folderFiles.length > 0) {
+                // If we have the index, use it for faster deletion
+                if (index !== null && index >= 0 && index < folderFiles.length) {
+                    folderFiles.splice(index, 1);
+                } else {
+                    // Otherwise, find by name
+                    const fileIndex = folderFiles.findIndex(f => f.name === file.name);
+                    if (fileIndex !== -1) {
+                        folderFiles.splice(fileIndex, 1);
+                    }
+                }
+                
+                // Save to storage and update UI
+                saveFilesToStorage();
+                renderFiles();
+                updateStatus();
+                
+                addTerminalLine(`FILE DELETED: ${file.name}`);
+                addSecurityLog(`File deleted: ${file.name}`);
+            }
+            
+            // Close confirmation and reset
+            deleteConfirmation.style.display = 'none';
+            state.fileToDelete = null;
+            
+            // Close file modal if it's open
+            fileModal.style.display = 'none';
+        }
+
+        // Handle file upload
+        function handleFileUpload() {
+            const files = fileInput.files;
+            
+            if (files.length === 0) return;
+            
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    // Determine file type
+                    let type = 'text';
+                    if (file.type.startsWith('image/')) type = 'image';
+                    else if (file.name.endsWith('.zip') || file.name.endsWith('.rar')) type = 'archive';
+                    else if (file.name.endsWith('.pdf')) type = 'pdf';
+                    else if (file.name.endsWith('.doc') || file.name.endsWith('.docx')) type = 'document';
+                    
+                    // Add to current folder
+                    if (!state.files[state.currentFolder]) {
+                        state.files[state.currentFolder] = [];
+                    }
+                    
+                    state.files[state.currentFolder].push({
+                        name: file.name,
+                        type: type,
+                        content: e.target.result,
+                        originalFile: file // Store original file reference for downloads
+                    });
+                    
+                    // Save to localStorage
+                    saveFilesToStorage();
+                    
+                    // Update UI
+                    renderFiles();
+                    updateStatus();
+                    addTerminalLine(`FILE UPLOADED: ${file.name}`);
+                    addSecurityLog(`File uploaded: ${file.name}`);
+                    
+                    // Reset file input
+                    if (i === files.length - 1) {
+                        fileInput.value = '';
+                    }
+                };
+                
+                // Read file based on type
+                if (file.type.startsWith('image/') || 
+                    file.type === 'application/pdf' || 
+                    file.type.includes('document') ||
+                    file.type === 'application/zip' ||
+                    file.type === 'application/x-rar-compressed') {
+                    // Read binary files as data URL
+                    reader.readAsDataURL(file);
+                } else {
+                    // Read text files as text
+                    reader.readAsText(file);
+                }
+            }
+        }
+
+        // Update status bar
+        function updateStatus() {
+            let totalFiles = 0;
+            let totalSize = 0;
+            
+            Object.keys(state.files).forEach(folder => {
+                totalFiles += state.files[folder].length;
+                // Rough estimation of file sizes
+                totalSize += state.files[folder].length * 100; // 100KB per file estimate
+            });
+            
+            fileCount.textContent = `FILES: ${totalFiles}`;
+            storageUsed.textContent = `STORAGE: ${(totalSize / 1024).toFixed(1)} MB`;
+        }
+
+        // Initialize the application when the page loads
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
